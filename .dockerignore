@@ -1,0 +1,23 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+
+# Documentation
+README.md
+*.md
+
+# CI/CD
+Jenkinsfile
+.github
+
+# Kubernetes
+*.yaml
+*.yml
+
+# IDE
+.vscode
+.idea

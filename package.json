@@ -1,0 +1,13 @@
+{
+  "name": "tp3-mon-app",
+  "version": "1.0.0",
+  "description": "Application minimale pour TP3 - Jenkins CI/CD avec Kubernetes",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": ["tp3", "kubernetes", "jenkins"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {}
+}
