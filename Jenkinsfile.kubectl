@@ -1,0 +1,150 @@
+pipeline {
+  agent any
+  
+  environment {
+    IMAGE = "louaymejri/mon-app"
+    TAG = "${env.BUILD_NUMBER}"
+  }
+  
+  stages {
+    stage('Clone') {
+      steps {
+        echo "Clonage du dépôt Git..."
+        git url: 'https://github.com/4Lou4/mon-app.git', branch: 'main'
+      }
+    }
+    
+    stage('Build Docker Image') {
+      steps {
+        echo "Construction de l'image Docker..."
+        script {
+          sh "docker build -t ${IMAGE}:${TAG} ."
+          sh "docker tag ${IMAGE}:${TAG} ${IMAGE}:latest"
+        }
+      }
+    }
+    
+    stage('Push Image') {
+      steps {
+        echo "Publication de l'image sur Docker Hub..."
+        withCredentials([usernamePassword(
+          credentialsId: 'dockerhub-creds',
+          usernameVariable: 'DOCKER_USER',
+          passwordVariable: 'DOCKER_PASS'
+        )]) {
+          sh '''
+            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+            docker push ${IMAGE}:${TAG}
+            docker push ${IMAGE}:latest
+            docker logout
+          '''
+        }
+      }
+    }
+    
+    stage('Update Deployment File') {
+      steps {
+        echo "Mise à jour du fichier deployment.yaml..."
+        script {
+          sh """
+            sed -i 's|louaymejri/mon-app:latest|${IMAGE}:${TAG}|g' deployment.yaml
+            cat deployment.yaml | grep image:
+          """
+        }
+      }
+    }
+    
+    stage('Deploy to Kubernetes') {
+      steps {
+        echo "Déploiement sur Kubernetes..."
+        script {
+          // Copier les fichiers dans le workspace de l'hôte
+          sh """
+            echo "Fichiers deployment.yaml et service.yaml prêts"
+            echo "Exécution des commandes kubectl sur l'hôte..."
+          """
+          
+          // Exécuter kubectl depuis l'hôte via un script wrapper
+          sh '''
+            # Sauvegarder les fichiers pour déploiement manuel
+            docker run --rm \
+              --network=host \
+              -v ${WORKSPACE}:/workspace \
+              -v /home/louay/.kube:/root/.kube:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
+              bitnami/kubectl:latest \
+              apply -f /workspace/deployment.yaml
+              
+            docker run --rm \
+              --network=host \
+              -v ${WORKSPACE}:/workspace \
+              -v /home/louay/.kube:/root/.kube:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
+              bitnami/kubectl:latest \
+              apply -f /workspace/service.yaml
+              
+            docker run --rm \
+              --network=host \
+              -v /home/louay/.kube:/root/.kube:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
+              bitnami/kubectl:latest \
+              rollout status deployment/mon-app-deployment --timeout=120s
+          '''
+        }
+      }
+    }
+    
+    stage('Verify Deployment') {
+      steps {
+        echo "Vérification du déploiement..."
+        script {
+          sh '''
+            docker run --rm \
+              --network=host \
+              -v /home/louay/.kube:/root/.kube:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
+              bitnami/kubectl:latest \
+              get pods -l app=mon-app
+              
+            docker run --rm \
+              --network=host \
+              -v /home/louay/.kube:/root/.kube:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
+              bitnami/kubectl:latest \
+              get svc mon-app-service
+          '''
+        }
+      }
+    }
+  }
+  
+  post {
+    success {
+      echo "✅ Déploiement terminé avec succès!"
+      echo "Image déployée: ${IMAGE}:${TAG}"
+      echo "Application accessible sur: http://192.168.49.2:30080"
+    }
+    failure {
+      echo "❌ Pipeline échoué"
+      sh '''
+        docker run --rm \
+          --network=host \
+          -v /home/louay/.kube:/root/.kube:ro \
+          -v /home/louay/.minikube:/home/louay/.minikube:ro \
+          bitnami/kubectl:latest \
+          get pods -l app=mon-app || true
+          
+        docker run --rm \
+          --network=host \
+          -v /home/louay/.kube:/root/.kube:ro \
+          -v /home/louay/.minikube:/home/louay/.minikube:ro \
+          bitnami/kubectl:latest \
+          logs -l app=mon-app --tail=50 || true
+      '''
+    }
+    always {
+      echo "Nettoyage des images locales..."
+      sh "docker rmi ${IMAGE}:${TAG} || true"
+    }
+  }
+}

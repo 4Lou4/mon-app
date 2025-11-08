@@ -53,16 +53,24 @@ pipeline {
             sed -i 's|louaymejri/mon-app:latest|${IMAGE}:${TAG}|g' deployment.yaml || true
           """
           
-          // Appliquer les manifestes Kubernetes
-          sh "kubectl apply -f deployment.yaml"
-          sh "kubectl apply -f service.yaml"
+          // Copier les fichiers sur l'hôte et exécuter le script de déploiement
+          sh """
+            # Copier les fichiers depuis le workspace Jenkins vers /tmp sur l'hôte
+            docker cp \${WORKSPACE}/deployment.yaml host-deploy-deployment.yaml
+            docker cp \${WORKSPACE}/service.yaml host-deploy-service.yaml
+            docker cp \${WORKSPACE}/deploy-k8s.sh host-deploy-script.sh
+            
+            # Exécuter le script sur l'hôte via docker exec sur un conteneur temporaire
+            # Ou simplement sauvegarder et demander déploiement manuel
+            echo "Fichiers prêts pour déploiement"
+            echo "deployment.yaml et service.yaml mis à jour avec l'image ${IMAGE}:${TAG}"
+            
+            # Alternative: exécuter directement (nécessite accès à l'hôte)
+            # /home/louay/tp3/deploy-k8s.sh deployment.yaml service.yaml
+          """
           
-          // Attendre que le déploiement soit terminé
-          sh "kubectl rollout status deployment/mon-app-deployment --timeout=120s"
-          
-          // Afficher le statut
-          sh "kubectl get pods -l app=mon-app"
-          sh "kubectl get svc mon-app-service"
+          echo "⚠️  Exécutez manuellement sur l'hôte:"
+          echo "cd /home/louay/tp3 && ./deploy-k8s.sh deployment.yaml service.yaml"
         }
       }
     }
