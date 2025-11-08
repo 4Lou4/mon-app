@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: mon-app
-        image: louaymejri/mon-app:4
+        image: louaymejri/mon-app:6
         ports:
         - containerPort: 80
         env:
