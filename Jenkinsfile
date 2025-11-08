@@ -48,29 +48,26 @@ pipeline {
       steps {
         echo "Déploiement sur Kubernetes..."
         script {
-          // Mettre à jour l'image dans deployment.yaml avant apply
+          // Déclencher le déploiement automatique via le fichier trigger
           sh """
-            sed -i 's|louaymejri/mon-app:latest|${IMAGE}:${TAG}|g' deployment.yaml || true
-          """
-          
-          // Copier les fichiers sur l'hôte et exécuter le script de déploiement
-          sh """
-            # Copier les fichiers depuis le workspace Jenkins vers /tmp sur l'hôte
-            docker cp \${WORKSPACE}/deployment.yaml host-deploy-deployment.yaml
-            docker cp \${WORKSPACE}/service.yaml host-deploy-service.yaml
-            docker cp \${WORKSPACE}/deploy-k8s.sh host-deploy-script.sh
+            echo "🚀 Déclenchement du déploiement automatique..."
+            echo "${TAG}" > /tmp/jenkins-deploy-trigger
+            echo "✅ Trigger créé avec le tag: ${TAG}"
             
-            # Exécuter le script sur l'hôte via docker exec sur un conteneur temporaire
-            # Ou simplement sauvegarder et demander déploiement manuel
-            echo "Fichiers prêts pour déploiement"
-            echo "deployment.yaml et service.yaml mis à jour avec l'image ${IMAGE}:${TAG}"
+            # Attendre un peu que le watcher détecte le trigger
+            echo "⏳ Attente du déploiement (max 30s)..."
+            for i in {1..15}; do
+              if [ ! -f /tmp/jenkins-deploy-trigger ]; then
+                echo "✅ Déploiement déclenché avec succès!"
+                exit 0
+              fi
+              sleep 2
+            done
             
-            # Alternative: exécuter directement (nécessite accès à l'hôte)
-            # /home/louay/tp3/deploy-k8s.sh deployment.yaml service.yaml
+            echo "⚠️  Le déploiement est en cours ou le watcher n'est pas actif"
+            echo "Si le watcher n'est pas démarré, exécutez:"
+            echo "  /home/louay/tp3/deploy-watcher.sh &"
           """
-          
-          echo "⚠️  Exécutez manuellement sur l'hôte:"
-          echo "cd /home/louay/tp3 && ./deploy-k8s.sh deployment.yaml service.yaml"
         }
       }
     }
