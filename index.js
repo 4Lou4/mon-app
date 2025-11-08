@@ -7,7 +7,7 @@ const server = http.createServer((req, res) => {
     <html>
       <head><title>TP3 Application</title></head>
       <body>
-        <h1>Hello from TP3!</h1>
+        <h1>Hello from TP3! Againnn</h1>
         <p>Application déployée avec Jenkins et Kubernetes</p>
         <p>Build: ${process.env.BUILD_NUMBER || 'local'}</p>
       </body>
