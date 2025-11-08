@@ -12,7 +12,7 @@ pipeline {
       steps {
         echo "Clonage du dépôt Git..."
         // À MODIFIER: Remplace par l'URL de ton repo GitHub
-        git url: 'https://github.com/louay/mon-app.git', branch: 'main'
+        git url: 'https://github.com/4Lou4/mon-app.git', branch: 'main'
       }
     }
     
