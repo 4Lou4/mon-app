@@ -15,7 +15,7 @@ const server = http.createServer((req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TP3 - CI/CD Application</title>
+        <title>TP3 - CI/CD Application K8s&Helm</title>
         <style>
           * {
             margin: 0;
