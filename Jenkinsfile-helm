@@ -53,21 +53,18 @@ pipeline {
         echo "Deploying with Helm..."
         script {
           sh """
-            # Copy chart to a host-accessible location
-            cp -r ${CHART_DIR} /tmp/mon-app-chart
-            
-            # Deploy with Helm
-            docker run --rm --network=host \
+            docker run --rm \
+              -v /home/louay/tp3:/workspace \
               -v /home/louay/.kube/config:/root/.kube/config \
-              -v /tmp:/tmp \
-              alpine/helm:latest upgrade --install ${RELEASE_NAME} /tmp/mon-app-chart \
-                --set image.repository=${IMAGE} \
-                --set image.tag=${TAG} \
-                --namespace ${NAMESPACE} \
-                --wait --timeout 120s
-            
-            # Clean up temp files
-            rm -rf /tmp/mon-app-chart
+              --network=host \
+              -e KUBECONFIG=/root/.kube/config \
+              alpine/helm:latest sh -c '
+                helm upgrade --install ${RELEASE_NAME} /workspace/${CHART_DIR} \
+                  --set image.repository=${IMAGE} \
+                  --set image.tag=${TAG} \
+                  --namespace ${NAMESPACE} \
+                  --wait --timeout 120s
+              '
           """
         }
       }
