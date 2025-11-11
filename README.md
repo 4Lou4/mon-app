@@ -71,3 +71,4 @@ Access application: `http://<cluster-ip>:30080`
 - Health Checks: Liveness and Readiness probes
 - Resource Limits: CPU 100m, Memory 128Mi
 # Test trigger - Tue 11 Nov 2025 06:17:18 PM CET
+
