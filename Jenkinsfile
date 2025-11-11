@@ -60,14 +60,14 @@ pipeline {
         echo "Deploying to Kubernetes cluster..."
         script {
           sh """
-            # Copier le kubeconfig pour Jenkins
-            export KUBECONFIG=/home/louay/.kube/config
+            # Set kubeconfig path
+            export KUBECONFIG=/root/.kube/config
             
-            # Appliquer le deployment et le service
+            # Apply deployment and service
             kubectl apply -f deployment.yaml
             kubectl apply -f service.yaml
             
-            # Attendre que le déploiement soit terminé
+            # Wait for rollout to complete
             kubectl rollout status deployment/mon-app-deployment --timeout=120s
           """
         }
@@ -79,7 +79,7 @@ pipeline {
         echo "Verifying deployment..."
         script {
           sh """
-            export KUBECONFIG=/home/louay/.kube/config
+            export KUBECONFIG=/root/.kube/config
             kubectl get pods -l app=mon-app
             kubectl get svc mon-app-service
           """
@@ -97,7 +97,7 @@ pipeline {
     failure {
       echo "Pipeline failed"
       sh """
-        export KUBECONFIG=/home/louay/.kube/config
+        export KUBECONFIG=/root/.kube/config
         kubectl get pods -l app=mon-app || true
         kubectl logs -l app=mon-app --tail=50 || true
       """

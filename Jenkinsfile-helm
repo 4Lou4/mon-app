@@ -53,7 +53,7 @@ pipeline {
         echo "Deploying with Helm..."
         script {
           sh """
-            export KUBECONFIG=/home/louay/.kube/config
+            export KUBECONFIG=/root/.kube/config
             helm upgrade --install ${RELEASE_NAME} ${CHART_DIR} \
               --set image.repository=${IMAGE} \
               --set image.tag=${TAG} \
