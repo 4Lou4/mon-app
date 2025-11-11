@@ -122,7 +122,7 @@ const server = http.createServer((req, res) => {
       <body>
         <div class="container">
           <h1>TP3 Application</h1>
-          <p class="subtitle">CI/CD Pipeline with Jenkins & Kubernetes</p>
+          <p class="subtitle">CI/CD Pipeline with Jenkins & Kubernetes & Helm</p>
           
           <div class="info-grid">
             <div class="info-card">
