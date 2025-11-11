@@ -62,11 +62,12 @@ pipeline {
           sh """
             # Execute deployment script on host
             docker run --rm \
+              --entrypoint sh \
               -v /home/louay/tp3:/workspace \
               -v /home/louay/.kube/config:/root/.kube/config \
               --network=host \
               -e KUBECONFIG=/root/.kube/config \
-              bitnami/kubectl:latest sh -c '
+              bitnami/kubectl:latest -c '
                 kubectl apply -f /workspace/deployment.yaml &&
                 kubectl apply -f /workspace/service.yaml &&
                 kubectl rollout status deployment/mon-app-deployment --timeout=120s
@@ -82,10 +83,11 @@ pipeline {
         script {
           sh """
             docker run --rm \
+              --entrypoint sh \
               -v /home/louay/.kube/config:/root/.kube/config \
               --network=host \
               -e KUBECONFIG=/root/.kube/config \
-              bitnami/kubectl:latest sh -c '
+              bitnami/kubectl:latest -c '
                 kubectl get pods -l app=mon-app &&
                 kubectl get svc mon-app-service
               '
@@ -105,10 +107,11 @@ pipeline {
       echo "Pipeline failed"
       sh """
         docker run --rm \
+          --entrypoint sh \
           -v /home/louay/.kube/config:/root/.kube/config \
           --network=host \
           -e KUBECONFIG=/root/.kube/config \
-          bitnami/kubectl:latest sh -c '
+          bitnami/kubectl:latest -c '
             kubectl get pods -l app=mon-app || true
             kubectl logs -l app=mon-app --tail=50 || true
           '
