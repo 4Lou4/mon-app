@@ -60,21 +60,27 @@ pipeline {
         echo "Deploying to Kubernetes cluster..."
         script {
           sh """
+            # Copy files to a host-accessible location
+            cp deployment.yaml /tmp/deployment.yaml
+            cp service.yaml /tmp/service.yaml
+            
             # Apply deployment and service using host kubectl
             docker run --rm --network=host \
               -v /home/louay/.kube/config:/root/.kube/config \
-              -v \$(pwd):/workspace \
-              -w /workspace \
-              bitnami/kubectl:latest apply -f deployment.yaml
+              -v /tmp:/tmp \
+              bitnami/kubectl:latest apply -f /tmp/deployment.yaml
             
             docker run --rm --network=host \
               -v /home/louay/.kube/config:/root/.kube/config \
-              bitnami/kubectl:latest apply -f service.yaml
+              bitnami/kubectl:latest apply -f /tmp/service.yaml
             
             # Wait for rollout to complete
             docker run --rm --network=host \
               -v /home/louay/.kube/config:/root/.kube/config \
               bitnami/kubectl:latest rollout status deployment/mon-app-deployment --timeout=120s
+            
+            # Clean up temp files
+            rm -f /tmp/deployment.yaml /tmp/service.yaml
           """
         }
       }
