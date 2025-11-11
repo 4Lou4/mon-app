@@ -60,15 +60,21 @@ pipeline {
         echo "Deploying to Kubernetes cluster..."
         script {
           sh """
-            # Set kubeconfig path
-            export KUBECONFIG=/var/jenkins_home/.kube/config
+            # Apply deployment and service using host kubectl
+            docker run --rm --network=host \
+              -v /home/louay/.kube/config:/root/.kube/config \
+              -v \$(pwd):/workspace \
+              -w /workspace \
+              bitnami/kubectl:latest apply -f deployment.yaml
             
-            # Apply deployment and service
-            kubectl apply -f deployment.yaml
-            kubectl apply -f service.yaml
+            docker run --rm --network=host \
+              -v /home/louay/.kube/config:/root/.kube/config \
+              bitnami/kubectl:latest apply -f service.yaml
             
             # Wait for rollout to complete
-            kubectl rollout status deployment/mon-app-deployment --timeout=120s
+            docker run --rm --network=host \
+              -v /home/louay/.kube/config:/root/.kube/config \
+              bitnami/kubectl:latest rollout status deployment/mon-app-deployment --timeout=120s
           """
         }
       }
@@ -79,9 +85,13 @@ pipeline {
         echo "Verifying deployment..."
         script {
           sh """
-            export KUBECONFIG=/var/jenkins_home/.kube/config
-            kubectl get pods -l app=mon-app
-            kubectl get svc mon-app-service
+            docker run --rm --network=host \
+              -v /home/louay/.kube/config:/root/.kube/config \
+              bitnami/kubectl:latest get pods -l app=mon-app
+            
+            docker run --rm --network=host \
+              -v /home/louay/.kube/config:/root/.kube/config \
+              bitnami/kubectl:latest get svc mon-app-service
           """
         }
       }
@@ -97,9 +107,13 @@ pipeline {
     failure {
       echo "Pipeline failed"
       sh """
-        export KUBECONFIG=/var/jenkins_home/.kube/config
-        kubectl get pods -l app=mon-app || true
-        kubectl logs -l app=mon-app --tail=50 || true
+        docker run --rm --network=host \
+          -v /home/louay/.kube/config:/root/.kube/config \
+          bitnami/kubectl:latest get pods -l app=mon-app || true
+        
+        docker run --rm --network=host \
+          -v /home/louay/.kube/config:/root/.kube/config \
+          bitnami/kubectl:latest logs -l app=mon-app --tail=50 || true
       """
     }
     always {
