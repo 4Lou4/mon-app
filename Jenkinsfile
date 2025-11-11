@@ -64,7 +64,8 @@ pipeline {
             docker run --rm \
               --entrypoint sh \
               -v /home/louay/tp3:/workspace \
-              -v /home/louay/.kube/config:/root/.kube/config \
+              -v /home/louay/.kube/config:/root/.kube/config:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
               --network=host \
               -e KUBECONFIG=/root/.kube/config \
               bitnami/kubectl:latest -c '
@@ -84,7 +85,8 @@ pipeline {
           sh """
             docker run --rm \
               --entrypoint sh \
-              -v /home/louay/.kube/config:/root/.kube/config \
+              -v /home/louay/.kube/config:/root/.kube/config:ro \
+              -v /home/louay/.minikube:/home/louay/.minikube:ro \
               --network=host \
               -e KUBECONFIG=/root/.kube/config \
               bitnami/kubectl:latest -c '
@@ -108,7 +110,8 @@ pipeline {
       sh """
         docker run --rm \
           --entrypoint sh \
-          -v /home/louay/.kube/config:/root/.kube/config \
+          -v /home/louay/.kube/config:/root/.kube/config:ro \
+          -v /home/louay/.minikube:/home/louay/.minikube:ro \
           --network=host \
           -e KUBECONFIG=/root/.kube/config \
           bitnami/kubectl:latest -c '
