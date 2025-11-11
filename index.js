@@ -159,7 +159,7 @@ const server = http.createServer((req, res) => {
           </div>
           
           <div class="footer">
-            TP3 - DevOps with CI/CD Automation
+            TP3 - DevOps with CI/CD Automation using Jenkins & Kubernetes
           </div>
         </div>
       </body>
