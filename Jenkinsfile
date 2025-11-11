@@ -61,7 +61,7 @@ pipeline {
         script {
           sh """
             # Set kubeconfig path
-            export KUBECONFIG=/root/.kube/config
+            export KUBECONFIG=/var/jenkins_home/.kube/config
             
             # Apply deployment and service
             kubectl apply -f deployment.yaml
@@ -79,7 +79,7 @@ pipeline {
         echo "Verifying deployment..."
         script {
           sh """
-            export KUBECONFIG=/root/.kube/config
+            export KUBECONFIG=/var/jenkins_home/.kube/config
             kubectl get pods -l app=mon-app
             kubectl get svc mon-app-service
           """
@@ -97,7 +97,7 @@ pipeline {
     failure {
       echo "Pipeline failed"
       sh """
-        export KUBECONFIG=/root/.kube/config
+        export KUBECONFIG=/var/jenkins_home/.kube/config
         kubectl get pods -l app=mon-app || true
         kubectl logs -l app=mon-app --tail=50 || true
       """
