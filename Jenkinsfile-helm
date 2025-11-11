@@ -2,11 +2,8 @@ pipeline {
   agent any
   
   environment {
-    // Configuration Docker Hub
     IMAGE = "louaymejri/mon-app"
     TAG = "${env.BUILD_NUMBER}"
-    
-    // Configuration Helm
     CHART_DIR = "./mon-app-chart"
     RELEASE_NAME = "mon-app"
     NAMESPACE = "default"
