@@ -15,14 +15,14 @@ pipeline {
   stages {
     stage('Clone') {
       steps {
-        echo "🔄 Clonage du dépôt Git..."
+        echo "Cloning Git repository..."
         git url: 'https://github.com/4Lou4/mon-app.git', branch: 'main'
       }
     }
     
     stage('Build Docker Image') {
       steps {
-        echo "🐳 Construction de l'image Docker..."
+        echo "Building Docker image..."
         script {
           sh "docker build -t ${IMAGE}:${TAG} ."
           sh "docker tag ${IMAGE}:${TAG} ${IMAGE}:latest"
@@ -32,7 +32,7 @@ pipeline {
     
     stage('Push Image') {
       steps {
-        echo "📤 Publication de l'image sur Docker Hub..."
+        echo "Pushing image to Docker Hub..."
         withCredentials([usernamePassword(
           credentialsId: 'dockerhub-creds',
           usernameVariable: 'DOCKER_USER',
@@ -50,27 +50,15 @@ pipeline {
     
     stage('Helm Deploy') {
       steps {
-        echo "⎈ Déploiement avec Helm..."
+        echo "Deploying with Helm..."
         script {
-          // Créer le fichier trigger pour le watcher
           sh """
-            echo "🚀 Déclenchement du déploiement Helm automatique..."
-            echo "helm:${TAG}" > /tmp/jenkins-helm-deploy-trigger
-            echo "✅ Trigger Helm créé avec le tag: ${TAG}"
-            
-            # Attendre que le watcher détecte le trigger
-            echo "⏳ Attente du déploiement Helm (max 30s)..."
-            for i in {1..15}; do
-              if [ ! -f /tmp/jenkins-helm-deploy-trigger ]; then
-                echo "✅ Déploiement Helm déclenché avec succès!"
-                exit 0
-              fi
-              sleep 2
-            done
-            
-            echo "⚠️  Le déploiement Helm est en cours ou le watcher n'est pas actif"
-            echo "Si le watcher n'est pas démarré, exécutez:"
-            echo "  /home/louay/tp3/helm-deploy-watcher.sh &"
+            export KUBECONFIG=/home/louay/.kube/config
+            helm upgrade --install ${RELEASE_NAME} ${CHART_DIR} \
+              --set image.repository=${IMAGE} \
+              --set image.tag=${TAG} \
+              --namespace ${NAMESPACE} \
+              --wait --timeout 120s
           """
         }
       }
@@ -79,18 +67,17 @@ pipeline {
   
   post {
     success {
-      echo "✅ Pipeline terminé avec succès!"
-      echo "🐳 Image déployée: ${IMAGE}:${TAG}"
-      echo "⎈ Release Helm: ${RELEASE_NAME}"
-      echo "🌐 Application accessible sur: http://192.168.49.2:30080"
+      echo "Pipeline completed successfully!"
+      echo "Deployed image: ${IMAGE}:${TAG}"
+      echo "Helm release: ${RELEASE_NAME}"
+      echo "Application URL: http://192.168.58.2:30080"
     }
     failure {
-      echo "❌ Pipeline échoué"
+      echo "Pipeline failed"
     }
     always {
-      echo "🧹 Nettoyage des images locales..."
+      echo "Cleaning up local images..."
       sh "docker rmi ${IMAGE}:${TAG} || true"
-      sh "docker rmi ${IMAGE}:latest || true"
     }
   }
 }
