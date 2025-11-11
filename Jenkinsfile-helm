@@ -75,7 +75,7 @@ pipeline {
       echo "Pipeline completed successfully!"
       echo "Deployed image: ${IMAGE}:${TAG}"
       echo "Helm release: ${RELEASE_NAME}"
-      echo "Application URL: http://192.168.58.2:30080"
+      echo "Application URL: http://192.168.58.2:30081"
     }
     failure {
       echo "Pipeline failed"
